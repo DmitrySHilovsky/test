@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -21,6 +22,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+
+            <service android:name=".MyForegroundService" />
+            <receiver android:name=".MyVolumeChangeReceiver"
+                android:exported="true">
+                <intent-filter>
+                    <action android:name="android.intent.action.MEDIA_BUTTON" />
+                </intent-filter>
+            </receiver>
+
+
+
+
     </application>
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL"/>
 
 </manifest>
