@@ -16,17 +16,37 @@
         <activity
             android:name=".MainActivity"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
-            <service android:name=".MyForegroundService" />
+        <activity
+            android:name=".HomeActivity"
+            android:label="Home"></activity>
+
+        <activity
+            android:name=".PasswordSetActivity"
+            android:label="Pass"></activity>
+
+
+
+        <service android:name=".MyForegroundService" />
+
+
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.VIBRATE" />
 
 </manifest>
+
+
+
+
+
+

@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 
 public class PasswordManager {
 
-    private SharedPreferences sharedPreferences;
+    private final SharedPreferences sharedPreferences;
 
     public PasswordManager(Context context) {
         this.sharedPreferences = context.getSharedPreferences("password", Context.MODE_PRIVATE);
