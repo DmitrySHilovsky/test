@@ -21,13 +21,17 @@ public class MainActivity extends AppCompatActivity {
         Button submitButton = findViewById(R.id.submit_button);
         EditText passwordEditText = findViewById(R.id.password_edit_text);
 
+        String password = passwordEditText.getText().toString();
+        if (!passwordManager.isPasswordSet()) {
+            Intent intent = new Intent(MainActivity.this, PasswordSetActivity.class);
+            startActivity(intent);
+        }
+
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String password = passwordEditText.getText().toString();
                 if (!passwordManager.isPasswordSet()) {
-                    passwordManager.setPassword(password);
-
                     Intent intent = new Intent(MainActivity.this, PasswordSetActivity.class);
                     startActivity(intent);
                 } else if (passwordManager.verifyPassword(password)) {
