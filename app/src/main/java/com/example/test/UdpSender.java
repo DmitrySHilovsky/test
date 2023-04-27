@@ -16,9 +16,7 @@ public class UdpSender {
             @Override
             public void run() {
                 try {
-
                     byte[] buffer = message.getBytes();
-
                     int port = 29996; // ПОРТ
                     InetAddress address = InetAddress.getByName("51.77.116.226"); // IP СЕРВЕРА
 
@@ -27,8 +25,8 @@ public class UdpSender {
 
                     socket.send(packet);
 
-                    byte[] buffer2 = new byte[1024];
-                    DatagramPacket responsePacket = new DatagramPacket(buffer2, buffer2.length);
+                    byte[] bufferResponce = new byte[1024];
+                    DatagramPacket responsePacket = new DatagramPacket(bufferResponce, bufferResponce.length);
                     socket.receive(responsePacket);
 
                     // Convert response to string
