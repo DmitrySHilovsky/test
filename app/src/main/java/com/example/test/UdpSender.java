@@ -1,5 +1,7 @@
 package com.example.test;
 
+import android.content.Context;
+import android.os.Vibrator;
 import android.util.Log;
 
 import java.io.IOException;
@@ -10,6 +12,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 public class UdpSender {
+    private static Vibrator vibrator;
     public static void sendPacket(String message) throws IOException {
 
         new Thread(new Runnable() {
@@ -28,6 +31,7 @@ public class UdpSender {
                     byte[] bufferResponce = new byte[1024];
                     DatagramPacket responsePacket = new DatagramPacket(bufferResponce, bufferResponce.length);
                     socket.receive(responsePacket);
+                    // ДОБАВИТЬ КОРОТКОЕ ВИБРО
 
                     // Convert response to string
                     String response = new String(responsePacket.getData(), 0, responsePacket.getLength());
