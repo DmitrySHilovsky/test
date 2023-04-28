@@ -38,7 +38,8 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                     startActivity(intent);
                 } else {
-                    passwordEditText.setError("Invalid password");
+                    Intent intent = new Intent(MainActivity.this, LoadingPage.class);
+                    startActivity(intent);
                 }
             }
         });

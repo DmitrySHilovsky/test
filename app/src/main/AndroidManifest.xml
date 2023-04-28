@@ -32,6 +32,10 @@
             android:name=".PasswordSetActivity"
             android:label="Pass"></activity>
 
+        <activity
+            android:name=".LoadingPage"
+            android:label="Pass"></activity>
+
 
 
         <service android:name=".MyForegroundService" />
