@@ -22,6 +22,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(HomeActivity.this, "info", Toast.LENGTH_SHORT).show();
+                buttonInfo.setEnabled(false);
             }
         });
 
