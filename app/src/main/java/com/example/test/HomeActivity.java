@@ -1,4 +1,5 @@
 package com.example.test;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -28,21 +29,26 @@ public class HomeActivity extends AppCompatActivity {
 
         buttonStartStop.setOnClickListener(new View.OnClickListener() {
             boolean isServiceRunning = false;
+
             @Override
             public void onClick(View v) {
-                    if (isServiceRunning) {
-                        Toast.makeText(HomeActivity.this, "stop", Toast.LENGTH_SHORT).show();
-                        stopService(new Intent(HomeActivity.this, MyForegroundService.class));
-                        buttonStartStop.setText("START");
-                    } else {
-                        Toast.makeText(HomeActivity.this, "start", Toast.LENGTH_SHORT).show();
-                        Intent foregroundServiceIntent = new Intent(HomeActivity.this, MyForegroundService.class);
-                        ContextCompat.startForegroundService(HomeActivity.this, foregroundServiceIntent);
-                        buttonStartStop.setText("STOP");
-                    }
-                    isServiceRunning = !isServiceRunning;
+
+                if (isServiceRunning) {
+                    // STOP foregroundService
+                    Toast.makeText(HomeActivity.this, "stop - "+isServiceRunning, Toast.LENGTH_SHORT).show();
+                    stopService(new Intent(HomeActivity.this, MyForegroundService.class));
+                    buttonStartStop.setText("START");
+                } else {
+                    // START foregroundService
+                    Toast.makeText(HomeActivity.this, "start - "+isServiceRunning, Toast.LENGTH_SHORT).show();
+                    Intent foregroundServiceIntent = new Intent(HomeActivity.this, MyForegroundService.class);
+                    ContextCompat.startForegroundService(HomeActivity.this, foregroundServiceIntent);
+                    buttonStartStop.setText("STOP");
+                }
+                isServiceRunning = !isServiceRunning;
             }
         });
     }
 }
+
 

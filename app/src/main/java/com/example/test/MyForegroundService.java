@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -19,30 +20,28 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.media.VolumeProviderCompat;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Timer;
 
 public class MyForegroundService extends Service {
-    private static final String CHANNEL_ID = "ForegroundServiceChannel";
+
     public static final int SHORT_VIBRATION_DURATION = 200; // Длительность вибрации в миллисекундах
-    public static final int LONG_VIBRATION_DURATION = 1000; // Длительность вибрации в миллисекундах
+    public static final int LONG_VIBRATION_DURATION = 600; // Длительность вибрации в миллисекундах
+    
+    private static final String CHANNEL_ID = "ForegroundServiceChannel";
+    public static Integer counter = 0; // 4 байта: порядковый номер сообщения counter(Int)
     private Instant buttonReleaseTime;
     private Instant buttonPressTime;
     private Duration buttonPressDuration;
-
     // Структура сообщений на отправку:
-    private Short identificator = 00; // 2 байта: identificator, по умолчанию «00»
-    private Short typeMessage = 00; // 2 байта: тип сообщения
+    private String identificator = "AA"; // 2 байта: identificator, по умолчанию «00»
     private Short typeButton = 00;
     private Short typeDuration = 00;
-    public Integer counter = 0; // 4 байта: порядковый номер сообщения counter(Int)
-    private Long message = 0L; // 1-8 байт: сообщение, по умолчанию «0»
+    private String message = "0"; // 1-8 байт: сообщение, по умолчанию «0»
 
-    private Duration LONG_PRESSING_TIME = Duration.ofMillis(300); // Значение в миллисекундах после которого нажатие считается долгим
-;
+    private final Duration LONG_PRESSING_TIME = Duration.ofMillis(300); // Значение в миллисекундах после которого нажатие считается долгим
 
-    private Timer timer;
     private Vibrator vibrator;
     private MediaSessionCompat mediaSession;
 
@@ -50,7 +49,7 @@ public class MyForegroundService extends Service {
     public void onCreate() {
         super.onCreate();
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
+        UdpSender udpSender = new UdpSender(this);
         startForeground(1, createNotification()); // Создание уведомления для Foreground Service
         mediaSession = new MediaSessionCompat(this, "PlayerService");
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
@@ -68,28 +67,29 @@ public class MyForegroundService extends Service {
                         if (direction == 1) {
                             buttonPressTime = Instant.now();
                             typeButton = 1;
-                            //Log.d("VOLUME UP", "НАЖАТИЕ " + buttonPressTime);
                         }
 
                         if (direction == -1) {
                             buttonPressTime = Instant.now();
                             typeButton = 0;
-                            //Log.d("VOLUME DOWN", "НАЖАТИЕ " + buttonPressTime);
                         }
 
                         if (direction == 0) {
                             buttonReleaseTime = Instant.now();
-                            //Log.d("VOLUME DOWN/UP", "ОТЖАТИЕ " + buttonReleaseTime);
                             buttonPressDuration = Duration.between(buttonPressTime, buttonReleaseTime);
-                            //Log.d("VOLUME DOWN/UP", "ДИТЕЛЬНОСТЬ: " + buttonPressDuration);
                             if (buttonPressDuration.toMillis() > LONG_PRESSING_TIME.toMillis()) {
                                 typeDuration = 1;
                             } else {
                                 typeDuration = 0;
                             }
-                            Log.d("MESSAGE", ": " + "id: " +identificator + " " + "type:" + typeDuration + typeButton + " " + "count: " + counter + " " + "message: " + message);
-                            counter++;
-                            vibrator.vibrate(200);
+                            Log.d("MESSAGE", ": " + "id: " + identificator + " " + "type:" + typeDuration + typeButton + " " + "count: " + counter + " " + "message: " + message);
+                            
+
+                            try {
+                                UdpSender.sendPacket(identificator,typeDuration,typeButton,message );
+                            } catch (IOException e) {
+                                Log.d("ERROR_UDP", e.getMessage());
+                            }
                         }
                     }
                 };
@@ -103,6 +103,7 @@ public class MyForegroundService extends Service {
         IntentFilter filter = new IntentFilter(Intent.ACTION_MEDIA_BUTTON);
         return START_STICKY;
     }
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -141,6 +142,10 @@ public class MyForegroundService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d("onDestroy","DESTROY");
+        mediaSession.setActive(false);
+        stopForeground(true);
+        stopSelf();
     }
 }
 
