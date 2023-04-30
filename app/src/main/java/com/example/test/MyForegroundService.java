@@ -5,7 +5,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -28,20 +27,20 @@ public class MyForegroundService extends Service {
 
     public static final int SHORT_VIBRATION_DURATION = 200; // Длительность вибрации в миллисекундах
     public static final int LONG_VIBRATION_DURATION = 600; // Длительность вибрации в миллисекундах
-    
+    public static final String SERVER_IP = "51.77.116.226"; // IP - СЕРВЕРА
+    public static final int SERVER_PORT = 29996; // ПОРТ СЕРВЕРА
+
     private static final String CHANNEL_ID = "ForegroundServiceChannel";
     public static Integer counter = 0; // 4 байта: порядковый номер сообщения counter(Int)
+    // Структура сообщений на отправку:
+    public static String identificator = "AA"; // 2 байта: identificator, по умолчанию «00»
+    private final Duration LONG_PRESSING_TIME = Duration.ofMillis(300); // Значение в миллисекундах после которого нажатие считается долгим
     private Instant buttonReleaseTime;
     private Instant buttonPressTime;
     private Duration buttonPressDuration;
-    // Структура сообщений на отправку:
-    private String identificator = "AA"; // 2 байта: identificator, по умолчанию «00»
     private Short typeButton = 00;
     private Short typeDuration = 00;
-    private String message = "0"; // 1-8 байт: сообщение, по умолчанию «0»
-
-    private final Duration LONG_PRESSING_TIME = Duration.ofMillis(300); // Значение в миллисекундах после которого нажатие считается долгим
-
+    private final String message = "0"; // 1-8 байт: сообщение, по умолчанию «0»
     private Vibrator vibrator;
     private MediaSessionCompat mediaSession;
 
@@ -63,33 +62,38 @@ public class MyForegroundService extends Service {
                 new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, /*max volume*/100, /*initial volume level*/50) {
                     @Override
                     public void onAdjustVolume(int direction) {
-
-                        if (direction == 1) {
-                            buttonPressTime = Instant.now();
-                            typeButton = 1;
-                        }
-
-                        if (direction == -1) {
-                            buttonPressTime = Instant.now();
-                            typeButton = 0;
-                        }
-
-                        if (direction == 0) {
-                            buttonReleaseTime = Instant.now();
-                            buttonPressDuration = Duration.between(buttonPressTime, buttonReleaseTime);
-                            if (buttonPressDuration.toMillis() > LONG_PRESSING_TIME.toMillis()) {
-                                typeDuration = 1;
-                            } else {
-                                typeDuration = 0;
+                        try {
+                            if (direction == 1) {
+                                buttonPressTime = Instant.now();
+                                typeButton = 1;
+                                // TODO: отправка сообщения тайп 1 лонг 0
+                                UdpSender.sendPacket(identificator, typeDuration, typeButton, message);
                             }
-                            Log.d("MESSAGE", ": " + "id: " + identificator + " " + "type:" + typeDuration + typeButton + " " + "count: " + counter + " " + "message: " + message);
-                            
 
-                            try {
-                                UdpSender.sendPacket(identificator,typeDuration,typeButton,message );
-                            } catch (IOException e) {
-                                Log.d("ERROR_UDP", e.getMessage());
+                            if (direction == -1) {
+                                buttonPressTime = Instant.now();
+                                typeButton = 0;
+                                // TODO: отправка тайп 0 лонг 0
+                                UdpSender.sendPacket(identificator, typeDuration, typeButton, message);
                             }
+
+                            if (direction == 0) {
+                                buttonReleaseTime = Instant.now();
+                                buttonPressDuration = Duration.between(buttonPressTime, buttonReleaseTime);
+                                if (buttonPressDuration.toMillis() > LONG_PRESSING_TIME.toMillis()) {
+                                    typeDuration = 1;
+                                    // TODO: отправка сообщения лонг 1 тайп = typeButton
+                                    UdpSender.sendPacket(identificator, typeDuration, typeButton, message);
+                                } else {
+                                    typeDuration = 0;
+                                }
+                                // todo: убрать отсюда
+                                // Log.d("MESSAGE", ": " + "id: " + identificator + " " + "type:" + typeDuration + typeButton + " " + "count: " + counter + " " + "message: " + message);
+
+
+                            }
+                        } catch (IOException e) {
+                            Log.d("ERROR_UDP", e.getMessage());
                         }
                     }
                 };
@@ -142,7 +146,7 @@ public class MyForegroundService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d("onDestroy","DESTROY");
+        Log.d("onDestroy", "DESTROY");
         mediaSession.setActive(false);
         stopForeground(true);
         stopSelf();

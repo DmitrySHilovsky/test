@@ -1,6 +1,8 @@
 package com.example.test;
 
 import static com.example.test.MyForegroundService.LONG_VIBRATION_DURATION;
+import static com.example.test.MyForegroundService.SERVER_IP;
+import static com.example.test.MyForegroundService.SERVER_PORT;
 import static com.example.test.MyForegroundService.SHORT_VIBRATION_DURATION;
 import static com.example.test.MyForegroundService.counter;
 
@@ -34,13 +36,15 @@ public class UdpSender {
                 try {
                     vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
                     byte[] buffer = formattedMessage.getBytes();
-                    int port = 29996; // ПОРТ
-                    InetAddress address = InetAddress.getByName("51.77.116.226"); // IP СЕРВЕРА
+                    int port = SERVER_PORT; // ПОРТ
+                    InetAddress address = InetAddress.getByName(SERVER_IP); // IP СЕРВЕРА
 
                     DatagramSocket socket = new DatagramSocket();
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
 
                     socket.send(packet);
+                    // ДОБАВИТЬ КОРОТКОЕ ВИБРО
+                    vibrator.vibrate(SHORT_VIBRATION_DURATION);
                     counter++;
 
                     Instant sendPacketTime = Instant.now();
@@ -53,16 +57,13 @@ public class UdpSender {
                         Instant receivePacketTime = Instant.now();
                         Duration responceDuration = Duration.between(sendPacketTime, receivePacketTime);
 
-                        // ДОБАВИТЬ КОРОТКОЕ ВИБРО
-                        vibrator.vibrate(SHORT_VIBRATION_DURATION);
-
                         // Convert response to string
                         String response = new String(responsePacket.getData(), 0, responsePacket.getLength());
                         Log.d("UDP Response", response);
                     } catch (SocketTimeoutException E) {
                         vibrator.vibrate(LONG_VIBRATION_DURATION);
                         // latency 300ms
-                        Thread.sleep(1000);
+                        Thread.sleep(1200);
                         vibrator.vibrate(SHORT_VIBRATION_DURATION);
                         Thread.sleep(600);
                         vibrator.vibrate(SHORT_VIBRATION_DURATION);

@@ -1,5 +1,7 @@
 package com.example.test;
 
+import static com.example.test.MyForegroundService.identificator;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +11,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import java.io.IOException;
+
 public class HomeActivity extends AppCompatActivity {
 
     @Override
@@ -16,14 +20,25 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        UdpInfo udpInfo = new UdpInfo(this);
+
         Button buttonInfo = findViewById(R.id.info);
         Button buttonStartStop = findViewById(R.id.start);
 
         buttonInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(HomeActivity.this, "info", Toast.LENGTH_SHORT).show();
+                //Info:  кнопки на экране некликабельны.
                 buttonInfo.setEnabled(false);
+                buttonStartStop.setEnabled(false);
+                // Отправка сообщения
+                try {
+                    UdpInfo.sendPacket(identificator);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                buttonInfo.setEnabled(true);
+                buttonStartStop.setEnabled(true);
             }
         });
 
@@ -35,12 +50,12 @@ public class HomeActivity extends AppCompatActivity {
 
                 if (isServiceRunning) {
                     // STOP foregroundService
-                    Toast.makeText(HomeActivity.this, "stop - "+isServiceRunning, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(HomeActivity.this, "stop - " + isServiceRunning, Toast.LENGTH_SHORT).show();
                     stopService(new Intent(HomeActivity.this, MyForegroundService.class));
                     buttonStartStop.setText("START");
                 } else {
                     // START foregroundService
-                    Toast.makeText(HomeActivity.this, "start - "+isServiceRunning, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(HomeActivity.this, "start - " + isServiceRunning, Toast.LENGTH_SHORT).show();
                     Intent foregroundServiceIntent = new Intent(HomeActivity.this, MyForegroundService.class);
                     ContextCompat.startForegroundService(HomeActivity.this, foregroundServiceIntent);
                     buttonStartStop.setText("STOP");
